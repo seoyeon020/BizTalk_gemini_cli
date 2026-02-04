@@ -4,13 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BizTone Converter</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <h1>BizTone Converter</h1>
-    <p>Sprint 1: 기본 환경 설정 및 API 연동 완료.</p>
-    <p>프론트엔드 UI는 Sprint 2에서 개발될 예정입니다.</p>
+    <header>
+        <h1>BizTone Converter</h1>
+    </header>
+    <main class="container">
+        <div class="input-section">
+            <div class="card">
+                <h2>원문 입력</h2>
+                <textarea id="original-text" placeholder="여기에 변환할 텍스트를 입력하세요."></textarea>
+                <div class="char-count">
+                    <span id="current-char-count">0</span> / 500
+                </div>
+            </div>
+            <div class="target-selection card">
+                <h2>변환 대상</h2>
+                <div class="radio-group">
+                    <input type="radio" id="target-upward" name="target" value="상사" checked>
+                    <label for="target-upward">상사</label>
+                    <input type="radio" id="target-lateral" name="target" value="타팀 동료">
+                    <label for="target-lateral">타팀 동료</label>
+                    <input type="radio" id="target-external" name="target" value="고객">
+                    <label for="target-external">고객</label>
+                </div>
+                <button id="convert-button" class="primary-button">변환하기</button>
+            </div>
+        </div>
+        <div class="output-section">
+            <div class="card">
+                <h2>변환 결과</h2>
+                <textarea id="converted-text" placeholder="변환된 텍스트가 여기에 표시됩니다." readonly></textarea>
+                <button id="copy-button" class="secondary-button">복사하기</button>
+                <div id="feedback-message" class="feedback-message"></div>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2026 BizTone Converter. All rights reserved.</p>
+    </footer>
 
-    <script src="js/script.js"></script>
+    <script src="/js/script.js"></script>
 </body>
 </html>
