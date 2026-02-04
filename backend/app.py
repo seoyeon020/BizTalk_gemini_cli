@@ -1,48 +1,52 @@
 import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from groq import Groq
 from dotenv import load_dotenv
-# from groq import Groq
 
 # .env 파일에서 환경 변수 로드
 load_dotenv()
 
 app = Flask(__name__)
-# 모든 도메인에서의 요청을 허용하도록 CORS 설정
-CORS(app)
+# 프론트엔드からの 모든 출처에서의 요청을 허용
+CORS(app) 
 
-# Groq 클라이언트 초기화 (Sprint 3에서 실제 사용)
-# client = Groq(
-#     api_key=os.environ.get("GROQ_API_KEY"),
-# )
-
-@app.route('/')
-def health_check():
-    """헬스 체크를 위한 기본 엔드포인트"""
-    return jsonify({"status": "ok", "message": "BizTone Converter API is running."})
+# Groq 클라이언트 초기화
+# API 키는 환경 변수 'GROQ_API_KEY'에서 자동으로 로드됩니다.
+try:
+    groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+    print("Groq client initialized successfully.")
+except Exception as e:
+    groq_client = None
+    print(f"Error initializing Groq client: {e}")
 
 @app.route('/api/convert', methods=['POST'])
-def convert_tone():
+def convert_text():
     """
-    텍스트 변환을 처리하는 메인 API 엔드포인트.
-    Sprint 1에서는 더미(dummy) 데이터를 반환합니다.
+    텍스트 변환을 위한 API 엔드포인트.
+    Sprint 1에서는 실제 변환 로직 대신 더미 데이터를 반환합니다.
     """
-    try:
-        # 클라이언트로부터 데이터 수신 (Sprint 3에서 사용 예정)
-        # data = request.get_json()
-        # text = data.get('text')
-        # target = data.get('target')
+    data = request.json
+    original_text = data.get('text')
+    target = data.get('target')
 
-        # Sprint 1: 더미 응답 생성
-        dummy_response = "이것은 Sprint 1의 더미 응답입니다. API 연동이 성공적으로 확인되었습니다."
-        
-        return jsonify({"converted_text": dummy_response})
+    if not original_text or not target:
+        return jsonify({"error": "텍스트와 변환 대상은 필수입니다."}), 400
 
-    except Exception as e:
-        # 오류 발생 시 로그를 남기고 500 에러를 반환합니다.
-        app.logger.error(f"An error occurred: {e}")
-        return jsonify({"error": "Internal Server Error"}), 500
+    # Sprint 1: 실제 Groq API 호출 대신 더미 응답 반환
+    dummy_response = f"'{original_text}'를 '{target}'에게 보내는 말투로 변환한 결과입니다. (이것은 더미 응답입니다.)"
+    
+    response_data = {
+        "original_text": original_text,
+        "converted_text": dummy_response,
+        "target": target
+    }
+    
+    return jsonify(response_data)
+
+@app.route('/')
+def index():
+    return "BizTone Converter 백엔드 서버가 실행 중입니다."
 
 if __name__ == '__main__':
-    # 디버그 모드로 Flask 앱 실행
     app.run(debug=True, port=5000)
