@@ -22,12 +22,20 @@ def convert_message():
         return jsonify({"error": "Request body must be JSON."}), 400
 
     keywords = data.get('keywords')
-    persona = data.get('persona')
+    persona_from_frontend = data.get('persona') # 프론트엔드에서 받은 값
 
-    if not keywords or not persona:
-        print(f"ERROR: Missing keywords({keywords}) or persona({persona}) in request.") # 추가
+    # 프론트엔드 페르소나 값을 백엔드 키에 맞게 매핑
+    persona_mapping = {
+        "상사": "upward",
+        "타팀 동료": "lateral",
+        "고객": "external"
+    }
+    persona = persona_mapping.get(persona_from_frontend, "lateral") # 매핑된 페르소나 사용, 기본값 "lateral"
+
+    if not keywords or not persona_from_frontend: # 기존 조건 유지 (원래 프론트엔드 값 기준으로 체크)
+        print(f"ERROR: Missing keywords({keywords}) or persona({persona_from_frontend}) in request.") # 추가
         return jsonify({"error": "Missing keywords or persona in request."}), 400
-    print(f"Keywords: '{keywords}', Persona: '{persona}' received.") # 추가
+    print(f"Keywords: '{keywords}', Persona (frontend): '{persona_from_frontend}', Persona (mapped): '{persona}' received.") # 추가
 
     # 페르소나 매칭 (상사, 타팀 동료, 고객 값에 대응)
     # JS에서 보내는 값에 따라 매핑해줍니다.
