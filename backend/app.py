@@ -76,7 +76,7 @@ def convert_text():
                     "content": prompt,
                 }
             ],
-            model="moonshotai/kimi-k2-instruct-0905",
+            model="llama-3.3-70b-versatile",
             temperature=0.7, # 텍스트 생성의 다양성을 조절
             max_tokens=500, # 생성될 최대 토큰 수
         )
