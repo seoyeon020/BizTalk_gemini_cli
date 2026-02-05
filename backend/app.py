@@ -45,7 +45,7 @@ def convert_message():
             ],
             # [알림] 아래 모델명은 Groq 공식 지원 모델입니다. 
             # 지원되지 않는 모델명 사용 시 401/404 에러가 발생하므로 수정했습니다.
-            model="llama-3.3-70b-versatile", 
+            model="llama3-8b-8192", 
             temperature=0.7,
             max_tokens=300,
         )
