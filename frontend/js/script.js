@@ -1,93 +1,84 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const originalTextInput = document.getElementById('original-text');
-    const convertedTextInput = document.getElementById('converted-text');
-    const convertButton = document.getElementById('convert-button');
-    const copyButton = document.getElementById('copy-button');
-    const currentCharCount = document.getElementById('current-char-count');
-    const feedbackMessage = document.getElementById('feedback-message');
-    const radioButtons = document.querySelectorAll('input[name="target"]');
+    const convertBtn = document.getElementById('convert-btn');
+    const copyBtn = document.getElementById('copy-btn');
+    const keywordInput = document.getElementById('keyword-input');
+    const resultOutput = document.getElementById('result-output');
 
-    const MAX_CHARS = 500;
-    const API_ENDPOINT = '/api/convert'; // Flask backend endpoint
+    // Convert button click event
+    convertBtn.addEventListener('click', async () => {
+        const keywords = keywordInput.value.trim();
+        const selectedPersona = document.querySelector('input[name="persona"]:checked').value;
 
-    // --- Utility Functions ---
-    function showFeedback(message, type) {
-        feedbackMessage.textContent = message;
-        feedbackMessage.className = `feedback-message show ${type}`;
-        setTimeout(() => {
-            feedbackMessage.className = 'feedback-message';
-        }, 3000);
-    }
-
-    // --- Event Listeners ---
-
-    // Character count for original text input
-    originalTextInput.addEventListener('input', () => {
-        const textLength = originalTextInput.value.length;
-        currentCharCount.textContent = textLength;
-        if (textLength > MAX_CHARS) {
-            originalTextInput.value = originalTextInput.value.substring(0, MAX_CHARS);
-            currentCharCount.textContent = MAX_CHARS;
-            showFeedback('최대 500자까지 입력 가능합니다.', 'error');
-        }
-    });
-
-    // Convert button click handler
-    convertButton.addEventListener('click', async () => {
-        const originalText = originalTextInput.value.trim();
-        const selectedTarget = document.querySelector('input[name="target"]:checked').value;
-
-        if (!originalText) {
-            showFeedback('변환할 텍스트를 입력해주세요.', 'error');
+        if (!keywords) {
+            alert('핵심 키워드를 입력해주세요.');
+            keywordInput.focus();
             return;
         }
 
-        convertButton.disabled = true;
-        convertButton.textContent = '변환 중...';
-        convertedTextInput.value = ''; // Clear previous result
+        // Start loading state
+        resultOutput.classList.add('loading');
+        resultOutput.innerHTML = '<p class="loading-message">AI가 메시지를 생성 중입니다. 잠시만 기다려주세요...</p>';
+        convertBtn.disabled = true;
+        copyBtn.disabled = true; // Disable copy button while loading
 
         try {
-            const response = await fetch(API_ENDPOINT, {
+            // Fetch request to the backend API
+            const response = await fetch('/api/convert', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ text: originalText, target: selectedTarget }),
+                body: JSON.stringify({
+                    keywords: keywords,
+                    persona: selectedPersona,
+                }),
             });
 
-            const data = await response.json();
-
-            if (response.ok) {
-                convertedTextInput.value = data.converted_text;
-                showFeedback('텍스트 변환 성공!', 'success');
-            } else {
-                showFeedback(`오류: ${data.error || '알 수 없는 에러가 발생했습니다.'}`, 'error');
+            if (!response.ok) {
+                // Try to parse error response from backend
+                let errorMsg = `API call failed with status ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMsg = errorData.error || errorMsg;
+                } catch (e) {
+                    // If response is not JSON, use the status text
+                    errorMsg = response.statusText || errorMsg;
+                }
+                throw new Error(errorMsg);
             }
+
+            const data = await response.json();
+            // Display the converted message received from the backend
+            resultOutput.innerHTML = `<p>${data.converted_message}</p>`;
+
         } catch (error) {
-            console.error('API 호출 중 오류 발생:', error);
-            showFeedback('API 호출 중 문제가 발생했습니다. 서버를 확인해주세요.', 'error');
+            console.error('Error:', error);
+            resultOutput.innerHTML = `<p style="color: red;">오류가 발생했습니다: ${error.message}. 잠시 후 다시 시도해주세요.</p>`;
         } finally {
-            convertButton.disabled = false;
-            convertButton.textContent = '변환하기';
+            // End loading state
+            resultOutput.classList.remove('loading');
+            convertBtn.disabled = false;
+            copyBtn.disabled = false; // Re-enable copy button
         }
     });
 
-    // Copy button click handler
-    copyButton.addEventListener('click', async () => {
-        if (!convertedTextInput.value) {
-            showFeedback('변환된 텍스트가 없습니다.', 'error');
-            return;
-        }
-
-        try {
-            await navigator.clipboard.writeText(convertedTextInput.value);
-            showFeedback('변환된 텍스트가 클립보드에 복사되었습니다!', 'success');
-        } catch (err) {
-            console.error('클립보드 복사 실패:', err);
-            showFeedback('클립보드 복사에 실패했습니다. 수동으로 복사해주세요.', 'error');
+    // Copy button click event
+    copyBtn.addEventListener('click', () => {
+        const textToCopy = resultOutput.innerText;
+        // Check if there's text to copy and if it's not the loading message
+        if (textToCopy && textToCopy !== '변환 버튼을 누르면 결과가 여기에 표시됩니다.' && !resultOutput.classList.contains('loading')) {
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    alert('메시지가 클립보드에 복사되었습니다.');
+                })
+                .catch(err => {
+                    console.error('복사 실패:', err);
+                    alert('복사에 실패했습니다.');
+                });
+        } else if (resultOutput.classList.contains('loading')) {
+            alert('메시지가 로딩 중입니다. 완료 후 다시 시도해주세요.');
+        } else {
+            alert('복사할 내용이 없습니다.');
         }
     });
-
-    // Initialize character count on load
-    originalTextInput.dispatchEvent(new Event('input'));
 });
