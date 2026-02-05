@@ -53,7 +53,7 @@ def convert_message():
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message},
             ],
-            model="llama3-8b-8192",
+            model="llama-3.1-8b-8192",
             temperature=0.7,
             max_tokens=300,
         )
